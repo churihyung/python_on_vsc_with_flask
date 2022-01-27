@@ -1,6 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
+from scrapper import get_indeed_job
 
 app = Flask("SuperScrapper")
+
+db = {}
+
 
 @app.route("/")
 def home():
@@ -9,7 +13,17 @@ def home():
 @app.route("/report")
 def report():
   word = request.args.get('word')
-  return render_template("report.html", SearchBy=word)
+  if word:
+    word = word.lower()
+    fromDb = db.get(word)
+    if fromDb:
+      jobs = fromDb
+    else:
+      jobs = get_indeed_job(word)
+      db[word] = jobs
+  else:
+    return redirect("/")
+  return render_template("report.html", SearchBy=word,resultsNumber=len(jobs))
 
 
 
